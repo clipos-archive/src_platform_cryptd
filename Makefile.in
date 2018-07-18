@@ -1,0 +1,34 @@
+PACKAGE := cryptd
+
+VERSION_MAJOR := 1
+VERSION_MINOR := 5
+VERSION_MICRO := 16
+
+VERSION := ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
+VERNUM := $(shell printf 0x%02x%02x%02x ${VERSION_MAJOR} ${VERSION_MINOR} ${VERSION_MICRO})
+
+export VERSION
+export VERNUM
+export PACKAGE
+
+ifndef VERBOSE
+MAKEFLAGS += -s --no-print-directory
+ECHO = echo
+else 
+ECHO = echo > /dev/null
+endif
+
+SUBDIRS := src scripts doc man
+
+TARGETS := build install uninstall clean mrproper 
+
+$(TARGETS) :
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+		${ECHO} "        MAKE              $$subdir $@"; \
+		(cd $$subdir && $(MAKE) $@) \
+		|| exit 1; \
+	done
+
+maintainer-clean: mrproper
+	rm -fr autom4te.cache Makefile config.log config.status
+

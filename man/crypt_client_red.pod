@@ -1,0 +1,118 @@
+=pod
+
+=head1 NAME
+
+crypt_client_red - cryptd red client.
+
+=head1 SYNOPSIS
+
+=over 12
+
+=item B<crypt_client_red> B<-S> F<sock> B<-l>
+
+=item B<crypt_client_red> B<-S> F<sock> B<-t> I<title> B<-K> F<priv> [B<-k> F<pub>]+ [B<-i> F<file>]+ [B<-I> F<path>]+ B<-s> 
+
+=item B<crypt_client_red> B<-S> F<sock> B<-t> I<title> B<-K> F<priv> B<-o> F<dir> B<-r>|B<-R>
+
+=back
+
+=head1 DESCRIPTION
+
+B<crypt_client_red> is a dedicated client for communicating with the B<cryptd>
+daemon on its "red" socket. It allows encryption of files into ACID CSA archives, and 
+decryption of such archives into files, to and from the daemon on that interface, 
+as well as listing the contents of the input archive list of the daemon.
+
+=head1 OPTIONS
+
+B<crypt_client_red> supports the following options :
+
+=over 12
+
+=item B<-S> F<sock> [Mandatory]
+
+Connect to the F<sock> (path) socket to communicate with B<cryptd>.
+
+=item B<-l> 
+
+List the available archives in the output list of B<cryptd>. This returns a string containing
+all identifier tags (one per line) for archives that where created with the same I<uid> as 
+the caller.
+
+=item B<-s>
+
+Encrypt (send) an archive into B<cryptd>'s output list. 
+This requires the B<-K>, B<-k>, B<-t> and B<-i> arguments to be passed as well.
+
+=item B<-r>
+
+Decrypt (receive) an archive from B<cryptd>'s input list. 
+This requires the B<-K>, B<-t> and B<-o> arguments to be passed as well.
+
+=item B<-R>
+Decrypt (receive) an archive from B<cryptd>'s input list, and save the 
+sender's public key along with the decrypted cleartext.
+This requires the B<-K>, B<-t> and B<-o> arguments to be passed as well.
+
+=item B<-t> I<title>
+
+Use I<title> as the free-form identifier of the archive to encrypt or decrypt.
+
+=item B<-K> F<key>
+
+Use F<key> (file path) as the private key for encryption or decryption. F<key> must be
+a KLN Doc v1 or v2 ACID private key (I<acidpvr>). Note that the password for this key will be
+prompted for by B<cryptd> itself, through an external command.
+
+=item B<-i> F<file> [Encryption only]
+
+Add F<file> (file path), at the root of the archive being encrypted. 
+This can be passed several times to create a multi-file archive. 
+The file is included at the root of the archive, other path components 
+are skipped.
+
+=item B<-I> F<path> [Encryption only]
+
+Add F<path> (file path), with path, to the archive being encrypted. 
+This can be passed several times to create a multi-file archive. 
+All path components from F<path> are included in the
+archive, i.e. F<foo/bar> will appear as F<foo/bar> when decrypting 
+the archive, rather than simply F<bar>.
+Note however that absolute paths will be systematically "relativized"
+by the B<cryptd> daemon, i.e. F</foo/bar> will be silently turned 
+into F<foo/bar> (and don't even bother trying F<//foo/bar>).
+
+=item B<-k> F<key> [Encryption only]
+
+Add public key F<key> to the list of recipients for the archive being encrypted. F<key> must be
+a KLN Doc v1 or v2 ACID public key (I<acidppr>). This option can be passed several times to 
+specify multiple recipients for the archive.
+
+=item B<-o> F<dir> [Decryption only]
+
+Save the files extracted from the decrypted archive into directory F<dir>. F<dir> must exist and
+be a directory (it won't be created automatically). Subdirectories will be created automatically
+as needed if files in the archive specify a path including subdirectories. 
+Note that B<crypt_client_red> will refuse to modify any existing file, so F<dir> 
+should be basically empty.
+
+=item B<-v>
+
+Be more verbose in logging. This option can be passed several times for additional 
+effect, although at this point B<-vv> is as far as it goes in terms of verbosity.
+
+=item B<-h>
+
+Display a short help summary, and exit immediately.
+
+=back 
+
+=head1 AUTHOR 
+
+Vincent Strubel <L<clipos@ssi.gouv.fr>>
+
+=head1 SEE ALSO
+
+L<cryptd(8)|cryptd>, L<crypt_client_black(8)|crypt_client_black>
+ 
+=cut

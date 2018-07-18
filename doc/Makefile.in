@@ -1,0 +1,60 @@
+HTML_DOC=@html_doc@
+
+ifndef VERBOSE
+MAKEFLAGS += -s --no-print-directory
+ECHO = echo
+else 
+ECHO = echo > /dev/null
+endif
+
+HTML_DOC = @html_doc@
+
+CC = @CC@
+srcdir = @srcdir@
+SHELL = @SHELL@
+CFLAGS = @CFLAGS@
+LDFLAGS = @LDFLAGS@ 
+PREFIX = @prefix@
+datarootdir = @datarootdir@
+prefix = @prefix@
+mandir = @mandir@
+htmldocdir = $(datarootdir)/${PACKAGE}/html
+
+ifeq (${HTML_DOC}, yes)
+HTMLDOC := html/index.html
+else
+HTMLDOC :=
+endif
+
+build: ${HTMLDOC}
+
+html/index.html: doxyfile_html
+	@${ECHO} "        DOXYGEN           $<"
+	doxygen doxyfile_html 1>/dev/null 2>/dev/null
+	
+
+ifeq (${HTML_DOC}, yes)
+HTMLINST: ${HTMLDOC}
+	${ECHO} "        INST              $(DESTDIR)$(htmldocdir)"
+	mkdir -m0755 -p $(DESTDIR)$(htmldocdir)
+	cp -dpR html/* $(DESTDIR)$(htmldocdir)/
+HTMLUNINST: 
+	${ECHO} "        RM                $(DESTDIR)$(htmldocdir)"
+	rm -fr $(DESTDIR)$(htmldocdir)
+else
+HTMLINST:
+
+HTMLUNINST:
+endif
+
+install: ${HTMLINST}
+
+uninstall: ${HTMLUNINST}
+
+clean:
+	@${ECHO} "        CLEAN             html"
+	rm -fr html
+
+mrproper: clean
+	rm -f Makefile
+

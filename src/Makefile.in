@@ -1,0 +1,292 @@
+BLACKLIB_MAJOR := 2
+BLACKLIB_MINOR := 0
+BLACKLIB_MICRO := 0
+BLACKLIB_SHORT := cryptdcb
+BLACKLIB_NAME := lib${BLACKLIB_SHORT}.so
+
+REDLIB_MAJOR := 2
+REDLIB_MINOR := 0
+REDLIB_MICRO := 0
+REDLIB_SHORT := cryptdcr
+REDLIB_NAME := lib${REDLIB_SHORT}.so
+
+################# configure part ##############################
+TEST_CCSD = @test_ccsd@
+CCSD_INCLUDES = @ccsd_includes@
+KERNEL_INCLUDES = @kernel_includes@
+
+CC = @CC@
+srcdir = @srcdir@
+SHELL = @SHELL@
+CFLAGS = @CFLAGS@
+LDFLAGS = @LDFLAGS@ -lutil
+PREFIX = @prefix@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+sbindir = @sbindir@
+bindir = @bindir@
+libdir = @libdir@
+includedir = @includedir@
+build_server = @build_server@
+build_red = @build_red@
+build_black = @build_black@
+with_vserver = @with_vserver@
+with_diode = @with_diode@
+privsep_uid = @privsep_uid@
+privsep_gid = @privsep_gid@
+
+################# configure part ##############################
+
+SERVER_SRC := 		cmd.c \
+			dump.c \
+			log.c \
+			info.c \
+			cleartext_common.c \
+			cleartext_server.c \
+			ciphertext_common.c \
+			ciphertext_server.c \
+			crypt_ccsd.c \
+			crypt.c \
+			extcmd.c \
+			files.c
+ifeq (${with_diode}, yes)
+SERVER_SRC +=		diode.c
+endif
+SERVER_SRC +=		server.c
+
+REDLIB_SRC := 		cmd.c \
+			files.c \
+			client_common.c \
+			cleartext_common.c \
+			ciphertext_common.c \
+			cleartext_client.c
+REDLIB_INCLUDE :=	cryptd_red.h
+REDCLIENT_SRC :=	client_red.c
+UPCLIENT_SRC :=		client_up.c
+
+BLACKLIB_SRC := 	cmd.c \
+			files.c \
+			client_common.c \
+			cleartext_common.c \
+			ciphertext_common.c \
+			ciphertext_client.c
+BLACKLIB_INCLUDE :=	cryptd_black.h
+BLACKCLIENT_SRC := 	client_black.c
+DOWNCLIENT_SRC :=	client_down.c
+
+SERVER := cryptd
+REDLIB := ${REDLIB_NAME}.${REDLIB_MAJOR}.${REDLIB_MINOR}.${REDLIB_MICRO}
+REDLIB_SHORTVER := ${REDLIB_NAME}.${REDLIB_MAJOR}
+REDLIB_NOVER := ${REDLIB_NAME}
+REDCLIENT := crypt_client_red
+UPCLIENT := crypt_client_up
+BLACKLIB := ${BLACKLIB_NAME}.${BLACKLIB_MAJOR}.${BLACKLIB_MINOR}.${BLACKLIB_MICRO}
+BLACKLIB_SHORTVER := ${BLACKLIB_NAME}.${BLACKLIB_MAJOR}
+BLACKLIB_NOVER := ${BLACKLIB_NAME}
+BLACKCLIENT := crypt_client_black
+DOWNCLIENT := crypt_client_down
+
+EXES :=
+SBIN_EXES :=
+BIN_EXES :=
+LIBS :=
+INCLUDES := 
+
+ifeq (${build_server}, yes)
+EXES += ${SERVER}
+SBIN_EXES += ${SERVER}
+INCLUDES += cryptd_common.h cryptd_features.h cryptd_files.h 
+endif
+ifeq (${build_red}, yes)
+EXES += ${REDCLIENT}
+BIN_EXES += ${REDCLIENT}
+LIBS += ${REDLIB} 
+INCLUDES += ${REDLIB_INCLUDE}
+ifeq (${with_diode}, yes)
+EXES += ${UPCLIENT}
+BIN_EXES += ${UPCLIENT}
+endif
+endif
+ifeq (${build_black}, yes)
+EXES += ${BLACKCLIENT}
+BIN_EXES += ${BLACKCLIENT}
+LIBS += ${BLACKLIB} 
+INCLUDES += ${BLACKLIB_INCLUDE}
+ifeq (${with_diode}, yes)
+EXES += ${DOWNCLIENT}
+BIN_EXES += ${DOWNCLIENT}
+endif
+endif
+
+CFLAGS ?= -pipe -O2 -Wall -Wextra -fomit-frame-pointers
+LDFLAGS ?= -Wl,-z,now -Wl,-z,relro
+
+CFLAGS += -I. -I${CCSD_INCLUDES} -DUNIX -DVERNUM=${VERNUM}
+CFLAGS += -DPRIVSEP_UID=${privsep_uid} -DPRIVSEP_GID=${privsep_gid}
+ifeq (${with_vserver}, yes)
+CFLAGS += -I${KERNEL_INCLUDES} -DWITH_VSERVER
+LDFLAGS += -lclipvserver
+endif
+
+ifeq (${with_diode}, yes)
+CFLAGS += -DWITH_DIODE
+endif
+
+LDFLAGS += -Wl,--dynamic-list,ccsd-symbols.txt
+
+.PHONY: all 
+
+all: build
+
+###############################################################
+ifndef VERBOSE
+MAKEFLAGS += -s --no-print-directory
+ECHO = echo
+else 
+ECHO = echo > /dev/null
+endif
+
+OBJS_DIR ?= obj
+LOBJS_DIR ?= lobj
+SERVER_OBJFILES := ${foreach file, ${patsubst %.c,%.o,${SERVER_SRC}}, ${OBJS_DIR}/${file}}
+REDLIB_OBJFILES := ${foreach file, ${patsubst %.c,%.o,${REDLIB_SRC}}, ${LOBJS_DIR}/${file}}
+REDCLIENT_OBJFILES := ${foreach file, ${patsubst %.c,%.o,${REDCLIENT_SRC}}, ${OBJS_DIR}/${file}}
+UPCLIENT_OBJFILES := ${foreach file, ${patsubst %.c,%.o,${UPCLIENT_SRC}}, ${OBJS_DIR}/${file}}
+BLACKLIB_OBJFILES := ${foreach file, ${patsubst %.c,%.o,${BLACKLIB_SRC}}, ${LOBJS_DIR}/${file}}
+BLACKCLIENT_OBJFILES := ${foreach file, ${patsubst %.c,%.o,${BLACKCLIENT_SRC}}, ${OBJS_DIR}/${file}}
+DOWNCLIENT_OBJFILES := ${foreach file, ${patsubst %.c,%.o,${DOWNCLIENT_SRC}}, ${OBJS_DIR}/${file}}
+
+DEPS_DIR = ${OBJS_DIR}/.deps
+LDEPS_DIR = ${LOBJS_DIR}/.deps
+SERVER_DEPFILES := ${foreach file, ${basename ${SERVER_SRC}}, ${DEPS_DIR}/${file}.d}
+REDLIB_DEPFILES := ${foreach file, ${basename ${REDLIB_SRC}}, ${LDEPS_DIR}/${file}.d}
+REDCLIENT_DEPFILES := ${foreach file, ${basename ${REDCLIENT_SRC}}, ${DEPS_DIR}/${file}.d}
+UPCLIENT_DEPFILES := ${foreach file, ${basename ${UPCLIENT_SRC}}, ${DEPS_DIR}/${file}.d}
+BLACKLIB_DEPFILES := ${foreach file, ${basename ${BLACKLIB_SRC}}, ${LDEPS_DIR}/${file}.d}
+BLACKCLIENT_DEPFILES := ${foreach file, ${basename ${BLACKCLIENT_SRC}}, ${DEPS_DIR}/${file}.d}
+DOWNCLIENT_DEPFILES := ${foreach file, ${basename ${DOWNCLIENT_SRC}}, ${DEPS_DIR}/${file}.d}
+
+OBJFILES := ${SERVER_OBJFILES} \
+		${REDCLIENT_OBJFILES} ${REDLIB_OBJFILES} ${UPCLIENT_OBJFILES} \
+		${BLACKCLIENT_OBJFILES} ${BLACKLIB_OBJFILES} ${DOWNCLIENT_OBJFILES} \
+		${TEST_OBJFILES}
+DEPFILES := ${SERVER_DEPFILES} \
+		${REDCLIENT_DEPFILES} ${REDLIB_DEPFILES} ${UPCLIENT_DEPFILES} \
+		${BLACKCLIENT_DEPFILES} ${BLACKLIB_DEPFILES} ${DOWNCLIENT_DEPFILES} \
+		${TEST_DEPFILES}
+
+###############################################################
+.PHONY: build clean mrproper maintainer-clean
+
+${OBJS_DIR}:
+	mkdir -p ${OBJS_DIR}
+
+${LOBJS_DIR}:
+	mkdir -p ${LOBJS_DIR}
+
+${LDEPS_DIR}:
+	mkdir -p ${LDEPS_DIR}
+
+${DEPS_DIR}:
+	mkdir -p ${DEPS_DIR}
+
+${OBJS_DIR}/%.o:%.c Makefile 
+	@${ECHO} "        CC                $<"
+	$(CC) $(CFLAGS) $(IFLAGS) -MT $@ -MD -MP -MF ${DEPS_DIR}/$*.d -c -o $@ $<
+
+${LOBJS_DIR}/%.o:%.c Makefile 
+	@${ECHO} "        CC (PIC)          $<"
+	$(CC) $(CFLAGS) $(IFLAGS) -fPIC -DLIBRARY -MT $@ -MD -MP -MF ${LDEPS_DIR}/$*.d -c -o $@ $<
+
+${SERVER}: ${SERVER_OBJFILES} ccsd-symbols.txt
+	@${ECHO} "        LD                $@"
+	$(CC) $(CFLAGS) -o $@ ${SERVER_OBJFILES} $(LDFLAGS) -lclip -lacidfile -lacidcrypt -lz 
+
+${REDLIB}: ${REDLIB_OBJFILES}
+	@${ECHO} "        LD                $@"
+	$(CC) $(CFLAGS) -shared -Wl,-soname,${REDLIB_SHORTVER} -o $@ $^ $(LDFLAGS)
+
+${REDLIB_SHORTVER}: ${REDLIB}
+	ln -sf ${REDLIB} ${REDLIB_SHORTVER}
+
+${REDLIB_NOVER}: ${REDLIB}
+	ln -sf ${REDLIB} ${REDLIB_NOVER}
+
+${REDCLIENT}: ${REDCLIENT_OBJFILES} ${REDLIB_NOVER}
+	@${ECHO} "        LD                $@"
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) -lclip -L. -l${REDLIB_SHORT}
+
+${UPCLIENT}: ${UPCLIENT_OBJFILES} ${REDLIB_NOVER}
+	@${ECHO} "        LD                $@"
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) -lclip -L. -l${REDLIB_SHORT}
+
+${BLACKLIB}: ${BLACKLIB_OBJFILES}
+	@${ECHO} "        LD                $@"
+	$(CC) $(CFLAGS) -shared -Wl,-soname,${BLACKLIB_SHORTVER} -o $@ $^ $(LDFLAGS)
+
+${BLACKLIB_SHORTVER}: ${BLACKLIB}
+	ln -sf ${BLACKLIB} ${BLACKLIB_SHORTVER}
+
+${BLACKLIB_NOVER}: ${BLACKLIB}
+	ln -sf ${BLACKLIB} ${BLACKLIB_NOVER}
+
+${BLACKCLIENT}: ${BLACKCLIENT_OBJFILES} ${BLACKLIB_NOVER}
+	@${ECHO} "        LD                $@"
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) -lclip -L. -l${BLACKLIB_SHORT}
+
+${DOWNCLIENT}: ${DOWNCLIENT_OBJFILES} ${BLACKLIB_NOVER}
+	@${ECHO} "        LD                $@"
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) -lclip -L. -l${BLACKLIB_SHORT}
+
+build: ${OBJS_DIR} ${DEPS_DIR} ${LOBJS_DIR} ${LDEPS_DIR} ${EXES} ${LIBS}
+
+install: build
+	list='$(SBIN_EXES)'; for exe in $$list; do \
+		${ECHO} "        INST              ${DESTDIR}${sbindir}/$$exe" ;\
+		install -D $$exe ${DESTDIR}${sbindir}/$$exe ;\
+	done
+	list='$(BIN_EXES)'; for exe in $$list; do \
+		${ECHO} "        INST              ${DESTDIR}${bindir}/$$exe" ;\
+		install -D $$exe ${DESTDIR}${bindir}/$$exe ;\
+	done
+	list='$(LIBS)'; for lib in $$list; do \
+		${ECHO} "        INST              ${DESTDIR}${libdir}/$$lib" ;\
+		install -D $$lib ${DESTDIR}${libdir}/$$lib ;\
+		${ECHO} "        LN                ${DESTDIR}${libdir}/$${lib%.[0-9]*.[0-9]*}" ;\
+		ln -sf $$lib ${DESTDIR}${libdir}/$${lib%.[0-9]*.[0-9]*} ;\
+		${ECHO} "        LN                ${DESTDIR}${libdir}/$${lib%%.so*}.so" ;\
+		ln -sf $$lib ${DESTDIR}${libdir}/$${lib%%.so*}.so ;\
+	done
+	list='$(INCLUDES)'; for inc in $$list; do \
+		${ECHO} "        INST              ${DESTDIR}${includedir}/cryptd/$$inc" ;\
+		install -D $$inc ${DESTDIR}${includedir}/cryptd/$$inc ;\
+	done
+
+uninstall: 
+	list='$(SBIN_EXES)'; for exe in $$list; do \
+		${ECHO} "        RM                ${DESTDIR}${sbindir}/$$exe" ;\
+		rm -f  ${DESTDIR}${sbindir}/$$exe ;\
+	done
+	list='$(BIN_EXES)'; for exe in $$list; do \
+		${ECHO} "        RM                ${DESTDIR}${bindir}/$$exe" ;\
+		rm -f  ${DESTDIR}${bindir}/$$exe ;\
+	done
+	list='$(LIBS)'; for lib in $$list; do \
+		${ECHO} "        RM                ${DESTDIR}${libdir}/$$lib" ;\
+		rm -f ${DESTDIR}${libdir}/$$lib ;\
+	done
+	list='$(INCLUDES)'; for inc in $$list; do \
+		${ECHO} "        RM                ${DESTDIR}${includedir}/cryptd/$$inc" ;\
+		rm -f ${DESTDIR}${includedir}/cryptd/$$inc ;\
+	done
+
+clean:
+	@${ECHO} "        CLEAN            ${EXES} ${LIBS} ${OBJFILES}"
+	rm -f ${EXES} ${OBJFILES} ${DEPFILES} ${LIBS}
+
+mrproper: clean
+	rmdir ${DEPS_DIR} ${OBJS_DIR} ${LDEPS_DIR} ${LOBJS_DIR}
+	rm -f Makefile
+
+
+-include ${DEPFILES}

@@ -1,0 +1,180 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(src/server.c)
+
+dnl Checks for programs.
+AC_PROG_CC
+
+[
+if test "x$GCC" = "xyes"; then
+  CFLAGS="$CFLAGS -Wall -Wextra \
+	-Wstrict-prototypes -Wmissing-prototypes \
+	-Wcast-qual -Wcast-align -Wpointer-arith \
+	-Wnested-externs"
+fi
+]
+
+dnl Check for options
+AC_ARG_WITH(ccsd-includes, 
+	AC_HELP_STRING([--with-ccsd-includes=path], 
+		[Use path for CCSD includes (default: /usr/include/ccsd-3.3)]),
+		[ccsd_includes=$withval],
+		[ccsd_includes=/usr/include/ccsd-3.3])
+AC_SUBST(ccsd_includes)
+AC_MSG_CHECKING(for CCSD include path)
+AC_MSG_RESULT($ccsd_includes)
+
+AC_ARG_WITH(kernel-src, 
+	AC_HELP_STRING([--with-kernel-src=path], 
+		[Use path for kernel includes (default: /usr/src/linux)]),
+		[kernel_includes=$withval],
+		[kernel_includes=/usr/src/linux])
+AC_SUBST(kernel_includes)
+AC_MSG_CHECKING(for kernel include path)
+AC_MSG_RESULT($kernel_includes)
+
+AC_ARG_WITH(privsep-uid, 
+	AC_HELP_STRING([--with-privsep-uid=uid], 
+		[use uid for privsep slave cryptd daemon (default 401)]),
+		[privsep_uid=$withval],
+		[privsep_uid=401])
+AC_SUBST(privsep_uid)
+AC_MSG_CHECKING(for privilege separation uid)
+AC_MSG_RESULT($privsep_uid)
+
+AC_ARG_WITH(privsep-gid, 
+	AC_HELP_STRING([--with-privsep-gid=gid], 
+		[use gid for privsep slave cryptd daemon (default 401)]),
+		[privsep_gid=$withval],
+		[privsep_gid=401])
+AC_SUBST(privsep_gid)
+AC_MSG_CHECKING(for privilege separation gid)
+AC_MSG_RESULT($privsep_gid)
+
+AC_ARG_ENABLE(server,
+	AC_HELP_STRING([--enable-server],       
+			[build cryptd server (default=no)]),
+		build_server=$enableval, build_server=no)
+AC_MSG_CHECKING(if cryptd should be built)
+if test "x$build_server" = xyes; then
+	AC_MSG_RESULT(yes)
+else
+	AC_MSG_RESULT(no)
+fi
+AC_SUBST(build_server)
+
+AC_ARG_ENABLE(red-client,
+	AC_HELP_STRING([--enable-red-client],       
+			[build red client (default=no)]),
+		build_red=$enableval, build_red=no)
+AC_MSG_CHECKING(if red client should be built)
+if test "x$build_red" = xyes; then
+	AC_MSG_RESULT(yes)
+else
+	AC_MSG_RESULT(no)
+fi
+AC_SUBST(build_red)
+
+AC_ARG_ENABLE(black-client,
+	AC_HELP_STRING([--enable-black-client],       
+			[build black client (default=no)]),
+		build_black=$enableval, build_black=no)
+AC_MSG_CHECKING(if black client should be built)
+if test "x$build_black" = xyes; then
+	AC_MSG_RESULT(yes)
+else
+	AC_MSG_RESULT(no)
+fi
+AC_SUBST(build_black)
+
+AC_ARG_ENABLE(vserver,
+	AC_HELP_STRING([--enable-vserver],       
+			[use vserver jail to drop privileges (default=no)]),
+		with_vserver=$enableval, with_vserver=no)
+AC_MSG_CHECKING(if privilege dropping should use vserver)
+if test "x$with_vserver" = xyes; then
+	AC_MSG_RESULT(yes)
+else
+	AC_MSG_RESULT(no)
+fi
+AC_SUBST(with_vserver)
+
+AC_ARG_ENABLE(diode,
+	AC_HELP_STRING([--enable-diode],       
+			[enable diode functionnality (default=no)]),
+		with_diode=$enableval, with_diode=no)
+AC_MSG_CHECKING(if diode functionnality should be built)
+if test "x$with_diode" = xyes; then
+	AC_MSG_RESULT(yes)
+else
+	AC_MSG_RESULT(no)
+fi
+AC_SUBST(with_diode)
+
+AC_ARG_ENABLE(html-doc, 
+	AC_HELP_STRING([--enable-html-doc],
+		[create and install html documentation (default=no)]),
+		html_doc=$enableval, html_doc=no)
+AC_MSG_CHECKING(if html documentation should be created)
+if test "x$html_doc" = xyes; then
+	AC_MSG_RESULT(yes)
+else
+	AC_MSG_RESULT(no)
+fi
+AC_SUBST(html_doc)
+
+dnl Check for dependencies
+if test -z "$PKG_CONFIG"; then
+  PKG_CONFIG=pkg-config
+fi
+AC_SUBST(PKG_CONFIG)
+
+AC_MSG_CHECKING(that pkg-config runs)
+if "$PKG_CONFIG" --version > /dev/null 2>&1 ; then
+  AC_MSG_RESULT(yes)
+else
+  AC_MSG_RESULT(no)
+  AC_MSG_ERROR([*** $PKG_CONFIG missing ***
+
+\'$PKG_CONFIG --version\' failed to run - make sure it is inside one of the
+directories in your PATH environment variable!
+
+pkg-config comes with the developement packages for GTK+-2.2, available at:
+
+    http://www.gtk.org])
+fi
+
+
+AC_DEFUN(BUILD_DEPENDS, [
+AC_MSG_CHECKING(that $1 (version >= $2) is installed)
+if "$PKG_CONFIG" --atleast-version=$2 $1 ; then
+  AC_MSG_RESULT(yes)
+else
+  AC_MSG_RESULT(no)
+  if "$PKG_CONFIG" --exists $1 ; then
+    ERRSTR=`"$PKG_CONFIG"  --modversion $1`
+    AC_MSG_ERROR(Current version is only $ERRSTR)
+  else
+    AC_MSG_ERROR(Package is not installed)
+  fi
+fi
+])
+
+BUILD_DEPENDS(clip, 1.2.9)
+BUILD_DEPENDS(libacidfile, 2.0.5)
+BUILD_DEPENDS(libacidcrypt, 3.0.11)
+if test "x$with_vserver" = xyes; then
+	BUILD_DEPENDS(clip-vserver, 4.0.0)
+fi
+
+dnl Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS(clip/clip.h)
+AC_CHECK_HEADERS(clip/acidfile.h)
+AC_CHECK_HEADERS(clip/acidcrypt.h)
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+
+dnl Checks for library functions.
+
+AC_OUTPUT(Makefile src/Makefile scripts/Makefile man/Makefile doc/Makefile)

@@ -1,0 +1,88 @@
+=pod
+
+=head1 NAME
+
+crypt_client_black - cryptd black client.
+
+=head1 SYNOPSIS
+
+=over 12
+
+=item B<crypt_client_black> B<-S> F<sock> B<-l>
+
+=item B<crypt_client_black> B<-S> F<sock> B<-t> I<title> B<-o> F<out> B<-r>
+
+=item B<crypt_client_black> B<-S> F<sock> B<-t> I<title> B<-i> F<in> B<-s>
+
+=back
+
+=head1 DESCRIPTION
+
+B<crypt_client_black> is a dedicated client for communicating with the B<cryptd>
+daemon on its "black" socket. It allows import and export of ACID CSA archives to and
+from the daemon on that interface, as well as listing the contents of the output archive
+list of the daemon.
+
+It should be noted that cryptd archives are tagged by the creator's I<uid>, and only visible
+to the same I<uid>. Therefore, the B<crypt_client_black> and B<crypt_client_red> executables
+need to be launched under the same I<uid> to be able to transfer files between one another 
+through B<cryptd>.
+
+=head1 OPTIONS
+
+B<crypt_client_black> supports the following options :
+
+=over 12
+
+=item B<-S> F<sock> [Mandatory]
+
+Connect to the F<sock> (path) socket to communicate with B<cryptd>.
+
+=item B<-l> 
+
+List the available archives in the output list of B<cryptd>. This returns a string containing
+all identifier tags (one per line) for archives that where created with the same I<uid> as 
+the caller.
+
+=item B<-s>
+
+Import (send) an archive into B<cryptd>. This requires the B<-i> and B<-t> arguments to be
+passed as well.
+
+=item B<-r>
+
+Export (receive) an archive from B<cryptd>. This requires the B<-o> and B<-t> arguments to be
+passed as well.
+
+=item B<-t> I<title>
+
+Use I<title> as the free-form identifier of the archive to import or export.
+
+=item B<-i> F<archive> [Import only]
+
+Use F<archive> (path) as the archive to import.
+
+=item B<-o> F<archive> [Export only]
+
+Export the archive to path F<archive>, which must not exist yet.
+
+=item B<-v>
+
+Be more verbose in logging. This option can be passed several times for additional 
+effect, although at this point B<-vv> is as far as it goes in terms of verbosity.
+
+=item B<-h>
+
+Display a short help summary, and exit immediately.
+
+=back 
+
+=head1 AUTHOR 
+
+Vincent Strubel <L<clipos@ssi.gouv.fr>>
+
+=head1 SEE ALSO
+
+L<cryptd(8)|cryptd>, L<crypt_client_red(8)|crypt_client_red>
+ 
+=cut

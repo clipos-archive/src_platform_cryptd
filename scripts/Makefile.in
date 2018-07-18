@@ -1,0 +1,52 @@
+################# configure part ##############################
+
+srcdir = @srcdir@
+SHELL = @SHELL@
+PREFIX = @prefix@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+bindir = @bindir@
+build_server = @build_server@
+build_red = @build_red@
+build_black = @build_black@
+
+SCRIPTS := 
+
+ifeq (${build_server}, yes)
+SCRIPTS += crypt_getpass.sh
+endif
+
+################# configure part ##############################
+ifndef VERBOSE
+MAKEFLAGS += -s --no-print-directory
+ECHO = echo
+else 
+ECHO = echo > /dev/null
+endif
+
+.PHONY: all 
+
+all: build
+
+###############################################################
+.PHONY: build clean mrproper maintainer-clean
+
+build: 
+
+install: build
+	list='$(SCRIPTS)'; for exe in $$list; do \
+		${ECHO} "        INST              ${DESTDIR}${bindir}/$$exe" ;\
+		install -D $$exe ${DESTDIR}${bindir}/$$exe ;\
+	done
+
+uninstall: 
+	list='$(SCRIPTS)'; for exe in $$list; do \
+		${ECHO} "        RM                ${DESTDIR}${bindir}/$$exe" ;\
+		rm -f ${DESTDIR}${bindir}/$$exe ;\
+	done
+
+clean:
+
+mrproper: clean
+	rm -f Makefile
+

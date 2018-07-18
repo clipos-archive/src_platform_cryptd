@@ -1,0 +1,7 @@
+{
+  PtrAlloc;
+  PtrFree;
+  CurrentDate;
+  acidcrypt_log;
+  acidfile_log;
+};

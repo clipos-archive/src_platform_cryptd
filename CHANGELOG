@@ -1,0 +1,289 @@
+# CLIP ChangeLog for app-crypt/cryptd-server
+
+*cryptd-server-1.5.17-r2 (14 Oct 2013)
+
+  11 Sep 2014; Yves-Alexis Perez <clipos@ssi.gouv.fr>
+  cryptd-server-1.5.17-r2.ebuild:
+  Add amd64 keyword, masked for now.
+
+  14 Oct 2013; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.5.17-r2.ebuild, -cryptd-server-1.5.17-r1.ebuild,
+  -files/cryptd, +files/cryptd.start, +files/cryptd.stop,
+  -files/_debian:
+  Switch from a dedicated initd script to /etc/local.d snippets to
+  start cryptd.
+
+*cryptd-server-1.5.17-r1 (14 Oct 2013)
+
+  14 Oct 2013; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.5.17-r1.ebuild, -cryptd-server-1.5.17.ebuild,
+  files/cryptd:
+  Better compatibility with openrc in init script.
+
+*cryptd-server-1.5.17 (23 Sep 2013)
+
+  23 Sep 2013; ANSSI <clipos@ssi.gouv.fr>
+  +cryptd-server-1.5.17.ebuild, -cryptd-server-1.5.16.ebuild:
+  Fix build issue with kernel 3.10.
+
+*cryptd-server-1.5.16 (06 May 2013)
+
+  06 May 2013; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.5.16.ebuild, -cryptd-server-1.5.15.ebuild:
+  Perform decryption using the global signer cert rather than
+  the section 2 cert.
+
+*cryptd-server-1.5.15 (28 Mar 2013)
+
+  28 Mar 2013; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.5.15.ebuild, -cryptd-server-1.5.14.ebuild:
+  Fix for '\n' in filenames.
+
+*cryptd-server-1.5.14 (16 Nov 2012)
+
+  16 Nov 2012; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.5.14.ebuild, -cryptd-server-1.5.13.ebuild:
+  Add a CMD_DELETE command.
+
+*cryptd-server-1.5.13 (06 Sep 2012)
+
+  06 Sep 2012; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.5.13.ebuild, -cryptd-server-1.5.12.ebuild:
+  Better fix for filename encoding.
+
+*cryptd-server-1.5.12 (28 Aug 2012)
+
+  28 Aug 2012; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.5.12.ebuild, -cryptd-server-1.5.11.ebuild:
+  Fix filename encoding in CSA archives.
+
+*cryptd-server-1.5.11 (20 Jun 2012)
+
+  20 Jun 2012; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.5.11.ebuild, -cryptd-server-1.5.10.ebuild:
+  Bump to follow client update, for a change.
+
+*cryptd-server-1.5.10 (01 Jun 2012)
+
+  01 Jun 2012; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.5.10.ebuild, -cryptd-server-1.5.9.ebuild:
+  Fix getpass script for UTF-8 encoding.
+
+*cryptd-server-1.5.9 (17 Apr 2012)
+
+  17 Apr 2012; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.5.9.ebuild, -cryptd-server-1.5.8.ebuild:
+  Fix special character escapes in pinentry dialog.
+
+*cryptd-server-1.5.8 (16 Apr 2012)
+
+  16 Apr 2012; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.5.8.ebuild, -cryptd-server-1.5.7.ebuild:
+  Use pinentry rather than xdialog for confirmation dialogs.
+
+*cryptd-server-1.5.7 (12 Apr 2012)
+
+  12 Apr 2012; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.5.7.ebuild, -cryptd-server-1.5.6-r1.ebuild:
+  Support decryption with out of date certificates, like 
+  cryptofiler does.
+  Return more user-friendly error codes when the user cancels
+  an external command.
+
+*cryptd-server-1.5.6-r1 (26 Mar 2012)
+
+  26 Mar 2012; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.5.6-r1.ebuild, -cryptd-server-1.5.6.ebuild:
+  Force rebuild
+
+*cryptd-server-1.5.6 (11 Aug 2011)
+
+  11 Aug 2011; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.5.6.ebuild, -cryptd-server-1.5.5.ebuild:
+  Do not link against libccsd.so. Use a proper method to 
+  make sure symbols needed at dlopen() time are properly exported,
+  and support --as-needed.
+
+*cryptd-server-1.5.5 (21 Apr 2011)
+
+  21 Apr 2011; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.5.5.ebuild, -cryptd-server-1.5.4.ebuild:
+  Support encryption without recipients.
+
+*cryptd-server-1.5.4 (27 Jan 2011)
+
+  27 Jan 2011; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.5.4.ebuild, -cryptd-server-1.5.3.ebuild:
+  Fix logging levels for acidfile / acidcrypt.
+
+*cryptd-server-1.5.3 (22 Nov 2010)
+
+  22 Nov 2010; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.5.3.ebuild, -cryptd-server-1.5.2.ebuild:
+  Fix double free on incompatible tokens encryption.
+
+*cryptd-server-1.5.2 (09 Nov 2010)
+
+  09 Nov 2010; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.5.2.ebuild, -cryptd-server-1.5.1.ebuild:
+  Fix XAUTHORITY path in crypt_getpass.sh.
+
+*cryptd-server-1.5.1 (09 Aug 2010)
+
+  09 Aug 2010; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.5.1.ebuild, -cryptd-server-1.5.0.ebuild,
+  files/cryptd:
+  Fix client encryption errors.
+  Also run cryptd on configurations with only RM_H.
+
+*cryptd-server-1.5.0 (06 Aug 2010)
+
+  06 Aug 2010; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.5.0.ebuild, -cryptd-server-1.4.5.ebuild:
+  Add RM_H encryption / decryption (new feature, activated 
+  by default).
+  Better cert chain extraction when generating sender's 
+  public key.
+  Switch to EAPI 3.
+
+*cryptd-server-1.4.5 (03 Aug 2010)
+
+  03 Aug 2010; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.4.5.ebuild, -cryptd-server-1.4.4.ebuild:
+  Add proper token selection for encryption.
+
+*cryptd-server-1.4.4 (10 Jun 2010)
+
+  10 Jun 2010; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.4.4.ebuild, -cryptd-server-1.4.3.ebuild:
+  Add missing popup titles.
+
+*cryptd-server-1.4.3 (08 Jun 2010)
+
+  08 Jun 2010; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.4.3.ebuild, -cryptd-server-1.4.2.ebuild:
+  Bump libacidcrypt API to 3.0.0, manage peer certification
+  chain cache.
+
+*cryptd-server-1.4.2 (30 Apr 2010)
+
+  30 Apr 2010; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.4.2.ebuild, -cryptd-server-1.4.1.ebuild:
+  Fix password change :)
+
+*cryptd-server-1.4.1 (29 Apr 2010)
+
+  29 Apr 2010; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.4.1.ebuild, -cryptd-server-1.4.0.ebuild:
+  Support password change.
+
+*cryptd-server-1.4.0 (19 Apr 2010)
+
+  19 Apr 2010; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.4.0.ebuild, -cryptd-server-1.3.3.ebuild,
+  files/cryptd:
+  Better crypto error notification to clients. Support 
+  dynamic server features and server info (features / version)
+  requests.
+
+*cryptd-server-1.3.3 (30 Mar 2010)
+
+  30 Mar 2010; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.3.3.ebuild, -cryptd-server-1.3.2-r1.ebuild:
+  Fix for UTF-8 names in keys. Fix for multiple recipients 
+  borking the password input window.
+
+*cryptd-server-1.3.2-r1 (27 Jan 2010)
+
+  27 Jan 2010; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.3.2-r1.ebuild, -cryptd-server-1.3.2.ebuild,
+  files/cryptd:
+  Support the case where less than 2 RM jails are present - 
+  do not run cryptd in that case.
+
+*cryptd-server-1.3.2 (16 Dec 2009)
+
+  16 Dec 2009; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.3.2.ebuild, -cryptd-server-1.3.1.ebuild:
+  Bump, fix double free in diode when cancelling an import.
+
+*cryptd-server-1.3.1 (16 Nov 2009)
+
+  16 Nov 2009; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.3.1.ebuild, -cryptd-server-1.3.0.ebuild:
+  Merge changes from CELAR audit.
+
+*cryptd-server-1.3.0 (06 Oct 2009)
+
+  06 Oct 2009; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.3.0.ebuild, -cryptd-server-1.2.4.ebuild:
+  Merged BIS audit results, added support for allowing overwrite
+  in client put_file functions.
+
+*cryptd-server-1.2.4 (29 Jul 2009)
+
+  29 Jul 2009; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.2.4.ebuild, -cryptd-server-1.2.3.ebuild:
+  Fix external commands to use new Xauth path from slim.
+  Convert titles to UTF-8 before passing them to Xdialog
+  in external commands.
+
+*cryptd-server-1.2.3 (28 May 2009)
+
+  28 May 2009; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.2.3.ebuild, -cryptd-server-1.2.2-r1.ebuild:
+  Fix cleartext title lengths.
+  Use newest libacidcrypt multi-personnality API.
+
+*cryptd-server-1.2.2-r1 (15 May 2009)
+
+  15 May 2009; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.2.2-r1.ebuild, -cryptd-server-1.2.2.ebuild:
+  Silent bump, depends on bumped libacidfile / libacidcrypt.
+
+*cryptd-server-1.2.2 (12 May 2009)
+
+  12 May 2009; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.2.2.ebuild, -cryptd-server-1.2.1.ebuild:
+  Fix diode file paths.
+  Supply more specific errors to clients.
+
+*cryptd-server-1.2.1 (06 May 2009)
+
+  06 May 2009; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.2.1.ebuild, -cryptd-server-1.2.0.ebuild,
+  files/cryptd:
+  Support preloading ACID libraries (with the new, dynamic
+  loading libacidcrypt).
+  Fix race condition on external commands.
+
+*cryptd-server-1.2.0 (30 Apr 2009)
+
+  30 Apr 2009; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.2.0.ebuild, -cryptd-server-1.1.1.ebuild:
+  Add diode to import files from low to high level without
+  encryption.
+  Support exporting the sender's public key after decryption.
+  Switch to privilege-separation mode, with the slave daemon
+  jailed in a dedicated empty vserver context, and performing
+  most parsing operations.
+  Add hashes of files to decryption logs.
+
+*cryptd-server-1.1.1 (20 Mar 2009)
+
+  20 Mar 2009; Olivier Levillain <clipos@ssi.gouv.fr>
+  +cryptd-server-1.1.1.ebuild, -cryptd-server-1.1.0.ebuild:
+  Bump version due to modifications in client header files/
+	
+*cryptd-server-1.1.0 (12 Mar 2009)
+
+  12 Mar 2009; Vincent Strubel <clipos@ssi.gouv.fr>
+  +cryptd-server-1.1.0.ebuild, -cryptd-server-1.0.ebuild:
+  Improved logging / popup windows.
+  Absolute paths in archive members are now 'relativized'.
+
+*cryptd-server-1.0 (06 Feb 2009)
+
+  06 Feb 2009; Vincent Strubel <clipos@ssi.gouv.fr>
+  cryptd-server-1.0.ebuild, files/cryptd:
+  Initial import.

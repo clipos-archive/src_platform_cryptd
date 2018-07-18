@@ -1,0 +1,189 @@
+=pod
+
+=head1 NAME
+
+cryptd - local red / black ACID encryption daemon.
+
+=head1 SYNOPSIS
+
+=over 12
+
+=item B<cryptd> [B<-Fvh>] B<-r> F<red_sock> B<-b> F<black_sock> B<-c> I<external_cmd> [B<-p> I<algo>]+ [B<-A> I<addr> B<-X> I<xid> B<-R> I<path>]
+
+=back
+
+=head1 DESCRIPTION
+
+B<cryptd> is a daemon that listens on two UNIX sockets, one 'red' and one 'black', providing
+an encryption facility from red to black, and a decryption facility from black to red.
+More precisely, the following four types of transfers are supported :
+
+=over 12
+
+=item I<encryption>
+
+One or several files are written to the red socket, along with an ACID private (pvr) key, 
+one or several ACID public (ppr) keys, and a free-form identifier. The files are encrypted
+and signed for all recipients (i.e. all public keys) into a single ACID CSA archive, 
+using the private key. That archive is in turn tagged with the free-form identifier and 
+added to an output chained-list of archives.
+
+Before encryption can take place, the password for the private key must be entered through
+an external command run by the daemon, for instance a script launching up a popup window.
+
+=item I<ciphertext export>
+
+A free form identifier string is written on the black socket. If one of the archives in
+the output list of encrypted archives matches that identifier, that archive can then
+be retrieved on the black socket. The archive is subsequently removed from the output
+list.
+
+=item I<ciphertext import>
+
+A single CSA archive is written to the black socket, along with a free-form identifier
+string. That archive is tagged with the identifier, and added to an input list of 
+encrypted archives (which is different from the output list).
+
+=item I<decryption>
+
+An ACID private key and a free-form identifier are written to the red socket. If an archive
+is found in the input list which matches that identifier, the daemon attempts to decrypt
+that archive using the private key. If decryption is successful, the extracted cleartext
+files from the archives (including meta-data) can then be read on the red socket.
+
+Before decryption can take place, the password for the private key must be entered through
+an external command run by the daemon, for instance a script launching up a popup window.
+
+=back
+
+On top of this, both socket interfaces support listing their associated list of archives.
+Listing the black socket returns a list (as a string, with tokens separated by a newline)
+of the identifier tags of the archives currently referenced in the output list. Listing
+the red socket returns the same for the input list.
+
+Communication on either the black or the red socket requires a dedicated client, 
+B<cryptd_client_black> or B<cryptd_client_red>, respectively. The daemon only deals with
+a single connection at a time on both sockets combined. Connecting to a given socket 
+can thus block until another connection has been completely dealt with. After connecting,
+most I/O on the connected socket is non-blocking, with appropriate timeouts to make sure
+no single connection can block the daemon for long.
+
+It should be noted that both input and output lists are memory-only objects : their contents
+are lost if they are not extracted (by either decryption or ciphertext export) before the
+daemon shuts down. Objects in those lists are implicitly tagged with the I<uid> of the user 
+that created them (as retrieved from the socket credentials on the connected socket), so that 
+only the same I<uid> will be able to either extract them, or see them in the listing of 
+available archives.
+
+=head1 DIODE SERVICE
+
+Optionally, if B<cryptd> is compiled with the I<--enable-diode> configure switch, it will 
+also offer a diode service, which allows importing files in cleartext from "black" to "red".
+More precisely, B<cryptd> will in that case manage a third list of input files, dedicated 
+to cleartext files. Files in that list are identified by their file basename (no path is 
+included) and the I<uid> of the user that imported them into the list. A dedicated client
+(B<crypt_client_down>) can then connect to the black socket to add files to this "diode"
+list, while another client (B<crypt_client_up>) can connect to the red socket to retrieve
+files from that list (provided those files match the client's I<uid>), or list the contents 
+of the list. When retrieving a file from the list, a user confirmation through an external 
+command is required before transmitting the file over the red socket. Once transmitted, 
+the file is then removed from the diode list.
+
+=head1 PRIVILEGE SEPARATION
+
+B<cryptd> must be started as root. On startup, the daemon will fork itself into a master-slave
+couple. The slave daemon will then create the red and black listening sockets before jailing 
+itself and dropping every privilege it has. The master daemon will remain outside the slave 
+jail, and run external commands (e.g. for password retrieval) on behalf of the slave daemon 
+(with which it communicates on an anonymous AF_UNIX socket).
+
+The jail used by the slave daemon depends on compilation and command-line options. If B<cryptd>
+was compiled with vserver support, and the B<-X> option was passed on its command-line, then
+the slave daemon will be jailed in a dedicated vserver context. Failing that, the slave will
+be run in a simple chroot jail. In either cases, the VFS root of the jail may (and should) be
+totally empty (F</var/empty> will do just fine, and is the default setting), since any needed 
+files are opened by the slave beforing it jails itself. After jailing, the slave further reduces
+its privileges by setgid()/setuid()-ing to an unprivileged identity. The unprivileged I<uid> and
+I<gid> are both I<401> by default. These can be adjusted as a compile-time option only.
+
+Note also that while the master daemon does not jail itself nor switch to an unpriviledged 
+identity, it will still drop all its POSIX and LINUX capabilities right after forking the 
+slave daemon.
+
+=head1 OPTIONS
+
+B<cryptd> supports the following options :
+
+=over 12
+
+=item B<-b> F<black> [Mandatory]
+
+Bind the black socket on path F<black>
+
+=item B<-r> F<red> [Mandatory]
+
+Bind the red socket on path F<red>
+
+=item B<-c> F<cmd> [Mandatory]
+
+Use executable F<cmd> (absolute path) as the external command for password retrieval 
+before encryption or decryption. That command is passed a single argument, either 
+"encrypt" or "decrypt" depending on the type of operation. Moreover, it is passed 
+the UID of the user requesting the operation, and the identifier tag of the archive
+the operation will be performed on, through two environment variables named I<UID>
+and I<TITLE>, respectively. That command should in turn output the retrieved password
+(and only that) on its standard output, or exit with a non-null exit code if 
+password retrieval failed.
+
+=item B<-F>
+
+Run the daemon in foreground, with logging messages written to the standard output. 
+By default, the daemon detaches from its controlling terminal at startup, and logs
+through the syslog I<LOG_DAEMON> facility.
+
+=item B<-v>
+
+Be more verbose in logging. This option can be passed several times for additional 
+effect, although at this point B<-vv> is as far as it goes in terms of verbosity.
+
+=item B<-h>
+
+Display a short help summary, and exit immediately.
+
+=item B<-A> I<addr>
+
+Use I<addr> as the address of the vserver context the slave daemon jails itself into.
+This is only valid if B<cryptd> has been compiled with vserver support. The default
+address used if B<-A> is not passed is I<127.0.0.1>.
+
+=item B<-X> I<xid>
+
+Use I<xid> as the xid of the vserver context the slave daemon jails itself into.
+This is only valid if B<cryptd> has been compiled with vserver support. There is
+no default value for this option - if it is not passed, then B<cryptd> will not
+jail itself in a vserver context, but rather use I<chroot()>, regardless of whether
+it has vserver support or not. If passed, I<xid> must be a free xid (no active
+context with that xid should be present on the system), otherwise the daemon
+will refuse to jail itself, and thus not start up.
+
+=item B<-R> F<path>
+
+Use F<path> as the root of the slave daemon jail. This is either the root of a vserver
+context, if B<cryptd> supports it and the B<-X> option was passed, or a chroot jail.
+
+=item B<-p> I<algo>
+
+Preload an ACID library providing the algorithm named I<algo> before jailing self. The
+library must be found as $libdir/libccsd_I<algo>.so.
+
+=back
+
+=head1 AUTHOR 
+
+Vincent Strubel <L<clipos@ssi.gouv.fr>>
+
+=head1 SEE ALSO
+
+L<crypt_client_red(8)|crypt_client_red>, L<crypt_client_black(8)|crypt_client_black>
+ 
+=cut
